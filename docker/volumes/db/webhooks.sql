@@ -205,4 +205,38 @@ BEGIN;
   ALTER function supabase_functions.http_request() SET search_path = supabase_functions;
   REVOKE ALL ON FUNCTION supabase_functions.http_request() FROM PUBLIC;
   GRANT EXECUTE ON FUNCTION supabase_functions.http_request() TO postgres, anon, authenticated, service_role;
+
+  -- Trigger to send welcome & signup plan notifications when a user is confirmed
+  CREATE OR REPLACE FUNCTION public.handle_user_confirmation()
+  RETURNS trigger
+  LANGUAGE plpgsql
+  SECURITY DEFINER
+  AS $$
+  BEGIN
+    IF NEW.confirmed_at IS NOT NULL AND (OLD IS NULL OR OLD.confirmed_at IS NULL) THEN
+      PERFORM net.http_post(
+        'http://functions:9000/signup-email-trigger',
+        jsonb_build_object(
+          'record', jsonb_build_object(
+            'email', NEW.email,
+            'raw_user_meta_data', NEW.raw_user_meta_data
+          )
+        ),
+        '{}'::jsonb,
+        '{"Content-Type": "application/json"}'::jsonb,
+        5000
+      );
+    END IF;
+    RETURN NEW;
+  END;
+  $$;
+
+  ALTER FUNCTION public.handle_user_confirmation() OWNER TO postgres;
+
+  DROP TRIGGER IF EXISTS on_auth_user_confirmed ON auth.users;
+  CREATE TRIGGER on_auth_user_confirmed
+    AFTER INSERT OR UPDATE ON auth.users
+    FOR EACH ROW
+    EXECUTE FUNCTION public.handle_user_confirmation();
+
 COMMIT;
