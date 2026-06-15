@@ -608,7 +608,15 @@ export const AiAssistantStateContextProvider = ({ children }: PropsWithChildren)
   useEffect(() => {
     async function fetchModels() {
       try {
-        const response = await fetch(`${BASE_PATH}/api/ai/models`)
+        const headerData = await constructHeaders()
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        }
+        const authHeader = headerData.get('Authorization')
+        if (authHeader) {
+          headers['Authorization'] = authHeader
+        }
+        const response = await fetch(`${BASE_PATH}/api/ai/models`, { headers })
         if (response.ok) {
           const data = await response.json()
           if (data.models && Array.isArray(data.models)) {
