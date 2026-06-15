@@ -92,7 +92,15 @@ export async function getModel(params: GetModelParams): Promise<ModelResponse> {
       baseURL: process.env.OPENAI_BASE_URL || process.env.OPENAI_API_BASE,
       compatibility: 'compatible',
     })
-    const modelName = process.env.OPENAI_MODEL || chosenModelId
+    const customModels = process.env.OPENAI_MODEL
+      ? process.env.OPENAI_MODEL.split(',').map((m) => m.trim()).filter(Boolean)
+      : []
+    const modelName = customModels.includes(chosenModelId)
+      ? chosenModelId
+      : customModels.length > 0
+        ? customModels[0]
+        : chosenModelId
+
     const baseProviderOptions = providerRegistry.providerOptions?.openai ?? {}
     const openaiProviderOptions = modelEntry?.reasoningEffort
       ? { ...baseProviderOptions, reasoningEffort: modelEntry.reasoningEffort }

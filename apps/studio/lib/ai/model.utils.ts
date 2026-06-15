@@ -88,7 +88,11 @@ export function defaultAssistantModelId(hasAccessToAdvanceModel: boolean): Assis
 }
 
 export function isKnownAssistantModelId(id: string): id is AssistantModelId {
-  return Object.hasOwn(ASSISTANT_MODELS_MAP, id)
+  if (Object.hasOwn(ASSISTANT_MODELS_MAP, id)) return true
+  const customModels = process.env.OPENAI_MODEL
+    ? process.env.OPENAI_MODEL.split(',').map((m) => m.trim()).filter(Boolean)
+    : []
+  return customModels.includes(id)
 }
 
 export function isAssistantBaseModelId(id: string): id is AssistantBaseModelId {

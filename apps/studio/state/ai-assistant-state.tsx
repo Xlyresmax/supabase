@@ -48,6 +48,7 @@ type AiAssistantData = {
   activeChatId?: string
   model?: AssistantModel
   context: AiAssistantContext
+  availableModels?: string[]
 }
 
 // Data structure stored in IndexedDB
@@ -67,6 +68,7 @@ const INITIAL_AI_ASSISTANT: AiAssistantData = {
   activeChatId: undefined,
   model: undefined,
   context: {},
+  availableModels: [],
 }
 
 const DB_NAME = 'ai-assistant-db'
@@ -488,10 +490,7 @@ export const createAiAssistantState = (): AiAssistantState => {
       state.chats = persistedState.chats
       state.activeChatId = persistedState.activeChatId
       const storedModel = persistedState.model
-      state.model =
-        storedModel && isKnownAssistantModelId(storedModel)
-          ? storedModel
-          : INITIAL_AI_ASSISTANT.model
+      state.model = storedModel || INITIAL_AI_ASSISTANT.model
 
       // Ensure an active chat exists after loading
       if (!state.activeChat) {
@@ -604,6 +603,24 @@ export const AiAssistantStateContextProvider = ({ children }: PropsWithChildren)
       isMounted = false
     }
   }, [project?.ref, state])
+
+  // Effect to load available models from server config
+  useEffect(() => {
+    async function fetchModels() {
+      try {
+        const response = await fetch(`${BASE_PATH}/api/ai/models`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.models && Array.isArray(data.models)) {
+            state.availableModels = data.models
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch AI models:', err)
+      }
+    }
+    fetchModels()
+  }, [state])
 
   // Effect to save state to IndexedDB on changes
   useEffect(() => {

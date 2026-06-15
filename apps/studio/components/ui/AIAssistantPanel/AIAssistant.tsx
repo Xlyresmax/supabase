@@ -83,11 +83,15 @@ export const AIAssistant = ({ className }: AIAssistantProps) => {
   const selectedModel = useMemo<AssistantModel>(() => {
     // While entitlements are loading, use the stored model without enforcing access
     if (isLoadingEntitlements) {
-      return snap.model ?? DEFAULT_ASSISTANT_BASE_MODEL_ID
+      return snap.model ?? (snap.availableModels && snap.availableModels.length > 0 ? snap.availableModels[0] : DEFAULT_ASSISTANT_BASE_MODEL_ID)
     }
 
-    const defaultModel = defaultAssistantModelId(hasAccessToAdvanceModel)
+    const defaultModel = snap.availableModels && snap.availableModels.length > 0
+      ? snap.availableModels[0]
+      : defaultAssistantModelId(hasAccessToAdvanceModel)
     const model = snap.model ?? defaultModel
+
+    if (snap.availableModels?.includes(model)) return model
 
     if (!isKnownAssistantModelId(model)) return defaultModel
     if (!hasAccessToAdvanceModel && !isAssistantBaseModelId(model)) {
@@ -95,7 +99,7 @@ export const AIAssistant = ({ className }: AIAssistantProps) => {
     }
 
     return model
-  }, [isLoadingEntitlements, hasAccessToAdvanceModel, snap.model])
+  }, [isLoadingEntitlements, hasAccessToAdvanceModel, snap.model, snap.availableModels])
 
   const [updatedOptInSinceMCP] = useLocalStorageQuery(
     LOCAL_STORAGE_KEYS.AI_ASSISTANT_MCP_OPT_IN,
