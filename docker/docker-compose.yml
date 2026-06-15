@@ -15,6 +15,10 @@ services:
   studio:
     container_name: supabase-studio
     image: supabase-studio-local
+    build:
+      context: ..
+      dockerfile: apps/studio/Dockerfile
+      target: production
     restart: unless-stopped
     healthcheck:
       test:
