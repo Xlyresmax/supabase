@@ -675,16 +675,16 @@ services:
         "/app/bin/migrate && /app/bin/supavisor eval \"$$(cat /etc/pooler/pooler.exs)\" && /app/bin/server"
       ]
 
-  # cloudflared:
-  #   container_name: supabase-cloudflared
-  #   image: cloudflare/cloudflared:latest
-  #   restart: unless-stopped
-  #   depends_on:
-  #     kong:
-  #       condition: service_healthy
-  #   environment:
-  #     TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
-  #   command: tunnel --no-autoupdate run
+   cloudflared:
+     container_name: supabase-cloudflared
+     image: cloudflare/cloudflared:latest
+     restart: unless-stopped
+     depends_on:
+       kong:
+         condition: service_healthy
+     environment:
+       TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+     command: tunnel --no-autoupdate run
 
   templates-server:
     container_name: supabase-templates
