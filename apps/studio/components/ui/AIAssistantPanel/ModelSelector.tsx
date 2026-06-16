@@ -18,7 +18,6 @@ import {
 
 import { useCheckEntitlements } from '@/hooks/misc/useCheckEntitlements'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
-import { useAiAssistantStateSnapshot } from '@/state/ai-assistant-state'
 import { ASSISTANT_MODELS, isAdvanceOnlyModelId } from '@/lib/ai/model.utils'
 import type { AssistantModelId } from '@/lib/ai/model.utils'
 
@@ -32,7 +31,6 @@ export const ModelSelector = ({ selectedModel, onSelectModel }: ModelSelectorPro
   const { data: organization } = useSelectedOrganizationQuery()
   const { hasAccess: hasAccessToAdvanceModel, isLoading: isLoadingEntitlements } =
     useCheckEntitlements('assistant.advance_model')
-  const state = useAiAssistantStateSnapshot()
 
   const [open, setOpen] = useState(false)
 
@@ -69,18 +67,12 @@ export const ModelSelector = ({ selectedModel, onSelectModel }: ModelSelectorPro
         <Command>
           <CommandList>
             <CommandGroup>
-              {(state.availableModels && state.availableModels.length > 0
-                ? state.availableModels.map((modelId) => ({
-                    id: modelId,
-                    requiresAdvanceModelEntitlement: false,
-                  }))
-                : ASSISTANT_MODELS
-              ).map((m) => (
+              {ASSISTANT_MODELS.map((m) => (
                 <CommandItem
                   key={m.id}
                   value={m.id}
                   disabled={isLoadingEntitlements && isAdvanceOnlyModelId(m.id)}
-                  onSelect={() => handleSelectModel(m.id as any)}
+                  onSelect={() => handleSelectModel(m.id)}
                   className="flex justify-between"
                 >
                   <span>{m.id}</span>

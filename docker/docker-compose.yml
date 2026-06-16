@@ -14,11 +14,7 @@ services:
 
   studio:
     container_name: supabase-studio
-    image: supabase-studio-local
-    build:
-      context: ..
-      dockerfile: apps/studio/Dockerfile
-      target: production
+    image: supabase/studio:2026.04.27-sha-5f60601
     restart: unless-stopped
     healthcheck:
       test:
@@ -53,8 +49,6 @@ services:
       DEFAULT_ORGANIZATION_NAME: ${STUDIO_DEFAULT_ORGANIZATION}
       DEFAULT_PROJECT_NAME: ${STUDIO_DEFAULT_PROJECT}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
-      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
-      OPENAI_MODEL: ${OPENAI_MODEL:-}
 
       SUPABASE_URL: http://kong:8000
       SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL}
@@ -681,16 +675,16 @@ services:
         "/app/bin/migrate && /app/bin/supavisor eval \"$$(cat /etc/pooler/pooler.exs)\" && /app/bin/server"
       ]
 
-   cloudflared:
-     container_name: supabase-cloudflared
-     image: cloudflare/cloudflared:latest
-     restart: unless-stopped
-     depends_on:
-       kong:
-         condition: service_healthy
-     environment:
-       TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
-     command: tunnel --no-autoupdate run
+  # cloudflared:
+  #   container_name: supabase-cloudflared
+  #   image: cloudflare/cloudflared:latest
+  #   restart: unless-stopped
+  #   depends_on:
+  #     kong:
+  #       condition: service_healthy
+  #   environment:
+  #     TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+  #   command: tunnel --no-autoupdate run
 
   templates-server:
     container_name: supabase-templates
